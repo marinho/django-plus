@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% load adminmedia i18n %}
+
+{% block breadcrumbs %}{% if not is_popup %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+     <a href="../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     {{ original|truncatewords:"18" }}
+</div>
+{% endif %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% admin_media_prefix %}css/forms.css" type="text/css"/>
+{% endblock extrastyle %}
+
+{% block content %}
+{% for fieldset in model_info%}
+<fieldset class="module aligned">
+    {{ fieldset }}
+</fieldset>
+{% endfor %}
+{% endblock content %}
+

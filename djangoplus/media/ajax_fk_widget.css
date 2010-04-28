@@ -1,0 +1,45 @@
+.ajax-fk-window {
+    margin: 5px 0 0 105px;
+    background-color: #eee;
+    padding: 5px;
+    -moz-border-radius: 7px; /* Firefox */
+    -webkit-border-radius: 7px; /* Webkit - Chrome - Safari */
+    border-radius: 7px; /* CSS3 */
+    border: 1px solid silver;
+    display: none;
+}
+
+table.ajax-fk-results {
+    width: 100%;
+}
+
+table.ajax-fk-results tr:hover {
+    background-color: #ccc;
+    cursor: hand; /* IE/win */
+    cursor: pointer; /* ideal */
+}
+
+.ajax-fk-window .pagination {
+    text-align: center;
+    margin: 5px;
+}
+
+.ajax-fk-display {
+    margin: 0 5px 0 5px;
+}
+
+input.ajax-fk {
+    width: 70px;
+}
+
+.ajax-fk-buttons {
+    float: right;
+}
+
+.ajax-fk-close {
+    border: 1px solid black;
+    background-color: white;
+    color: black !important;
+    padding: 2px;
+}
+

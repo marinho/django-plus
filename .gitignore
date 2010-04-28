@@ -1,0 +1,13 @@
+*.pyc
+.*.swp
+.svn
+.bzr
+MANIFEST
+build
+dist
+*.egg
+.DS_Store
+*$py.class
+site/fonts
+site/layout
+

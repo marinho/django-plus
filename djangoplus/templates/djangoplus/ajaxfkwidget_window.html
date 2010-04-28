@@ -1,0 +1,62 @@
+{% load i18n pagination_tags djangoplus_tags %}
+
+{% block close_button %}
+<div class="ajax-fk-buttons">
+    <a class="ajax-fk-close" href="javascript: void(0)">Fechar</a>
+</div>
+{% endblock close_button %}
+
+{% block filter %}
+{% if driver.search_fields or driver.list_filter %}
+<div class="ajax-fk-filter">
+    {% if driver.search_fields %}
+    Palavra-chave: <input type="text" id="ajax-fk-search" name='ajax_fk_search' value="{{ request.GET.ajax_fk_search }}"/>&nbsp;
+    {% endif %}
+
+    <input type="button" value="{% trans "Procurar" %}" class="ajax-fk-search"/>
+</div>
+{% endif %}
+{% endblock filter %}
+
+{% autopaginate results 10 %}
+
+{% block pagination_top %}{% paginate %}{% endblock %}
+
+{% block grid %}
+<div class="module">
+    <table class="ajax-fk-results" cellspacing="0">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th class="{{ col.name }}">{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% block results %}
+            {% for obj in results %}
+            <tr {% block results_tr_attrs %}{% endblock %}>
+                {% ajaxfkwidget_cells obj list_display cells %}
+
+                {% for cell in cells %}
+                <td {% block results_td_attrs %} class="{{ cell.name }}" {% endblock %}>
+                    {{ cell.value }}
+
+                    {% ifequal forloop.counter0 0 %}
+                    <input type="hidden" value="{{ obj.pk }}" id="ajax-fk-result-pk"/>
+                    <input type="hidden" value="{{ obj }}" id="ajax-fk-result-display"/>
+                    <input type="hidden" value="{{ obj|ajaxfkwidget_url:function_get_url }}" id="ajax-fk-result-url"/>
+                    {% endifequal %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            {% endblock results %}
+        <tbody>
+    </table>
+</div>
+{% endblock grid %}
+
+{% block pagination_bottom %}{% paginate %}{% endblock %}
+
