@@ -1,4 +1,9 @@
-import copy, sets
+import copy
+
+try:
+    set
+except:
+    from sets import Set as set
 
 from django.forms.forms import BoundField
 from django.db import models
@@ -265,11 +270,11 @@ class CrossTableQuerySet(models.query.QuerySet):
         qs = self
 
         # Gets X values
-        x_values = x_values or sets.Set([getattr(obj, x_field) for obj in qs])
+        x_values = x_values or set([getattr(obj, x_field) for obj in qs])
         x_values = [i for i in x_values]
 
         # Gets Y values
-        y_values = y_values or sets.Set([getattr(obj, y_field) for obj in qs])
+        y_values = y_values or set([getattr(obj, y_field) for obj in qs])
         y_values = [i for i in y_values]
 
         # Make easier use of cross fields attribute
