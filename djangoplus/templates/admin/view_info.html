@@ -21,5 +21,17 @@
     {{ fieldset }}
 </fieldset>
 {% endfor %}
-{% endblock content %}
+
+{# Inlines #}
+{% if model_info.inlines %}
+    {% for inline in model_info.inlines %}
+    <fieldset class="module aligned">
+        <h2>{{ inline.title }}</h2>
+
+        <table class="list">
+            {{ inline }}
+        </table>
+    </fieldset>
+    {% endfor %}
+{% endif %}{% endblock content %}
 

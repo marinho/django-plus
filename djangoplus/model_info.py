@@ -66,20 +66,14 @@ class ModelInfoBase(object):
         except AttributeError, e:
             pass
 
-        if isinstance(instance, models.Model):
-            try:
-                f_value = getattr(instance, f_name)
-            except ObjectDoesNotExist:
-                f_value = None
-        elif type(instance) == types.DictType:
-            f_value = instance.get(f_name, None)
+        try:
+            f_value = get_attr_value(instance, f_name)
+        except ObjectDoesNotExist:
+            f_value = None
 
         if f_value is None:
             return None
-
-        if callable(f_value):
-            return f_value()
-        
+    
         if isinstance(f_value, models.Model):
             if self._meta.auto_urlize and hasattr(f_value, 'get_absolute_url') and not f_name in self._meta.list_display_links:
                 return '<a href="%s">%s</a>'%(f_value.get_absolute_url(), unicode(f_value))
@@ -444,4 +438,38 @@ class ModelList(ModelInfoBase):
             ret += self.summary()
 
         return mark_safe(ret)
+
+# JUST COPIED FROM GERALDO REPORTS
+def get_attr_value(obj, attr_path):
+    """This function gets an attribute value from an object. If the attribute
+    is a method with no arguments (or arguments with default values) it calls
+    the method. If the expression string has a path to a child attribute, it
+    supports.
+    
+    Examples:
+        
+        attribute_name = 'name'
+        attribute_name = 'name.upper'
+        attribute_name = 'customer.name.lower'
+    """
+    if not attr_path:
+        raise Exception('Invalid attribute path \'%s\''%attr_path)
+
+    parts = attr_path.split('.')
+
+    try:
+        val = getattr(obj, parts[0])
+    except AttributeError:
+        try:
+            val = obj[parts[0]]
+        except (KeyError, TypeError):
+            raise Exception('There is no attribute nor key "%s" in the object "%s"'%(parts[0], repr(obj)))
+
+    if len(parts) > 1:
+        val = get_attr_value(val, '.'.join(parts[1:]))
+
+    if callable(val):
+        val = val()
+        
+    return val
 

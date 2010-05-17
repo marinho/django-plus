@@ -11,7 +11,7 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.filterspecs import FilterSpec
 from django.contrib.admin.util import unquote
 
-from model_info import ModelInfo
+from model_info import ModelInfo, ModelList
 
 class CustomFilterSpec(FilterSpec):
     def __init__(self, f, request, params, model, model_admin):
@@ -168,12 +168,50 @@ class CustomModelAdmin(ModelAdmin):
             if getattr(self, 'exclude', None):
                 self.model_info.Meta.exclude = self.exclude
 
+            # Inlines
+            self.model_info.inline_classes = []
+            for inline in self.inline_instances:
+                inline_class = self.get_model_info_inline_class(inline, class_name)
+
+                self.model_info.inline_classes.append(inline_class)
+
         return self.model_info
+
+    def get_model_info_inline_class(self, inline, info_class_name):
+        inline_class_name = info_class_name + inline.model.__name__
+
+        inline_class = type(inline_class_name, (CustomModelList,), {})
+        inline_class.Meta.model = inline.model
+        inline_class.title = getattr(inline, 'view_title', inline.verbose_name_plural.capitalize())
+        inline_class.inline_instance = inline
+
+        if getattr(inline, 'view_fields', None):
+            inline_class.Meta.fields = inline.view_fields
+        elif inline.fields:
+            inline_class.Meta.fields = inline.fields
+        else:
+            fields = [f.name for f in inline.model._meta.fields]
+            inline_class.Meta.fields = fields
+
+        return inline_class
 
     def get_model_info(self, request, obj):
         """Returns an instance of model info for the given object"""
 
-        return self.get_model_info_class(request, obj)(obj)
+        model_info = self.get_model_info_class(request, obj)(obj)
+
+        # Inlines
+        model_info.inlines = []
+        for inline_class in self.model_info.inline_classes:
+            try:
+                qs = inline_class.inline_instance.queryset(request)
+            except TypeError:
+                qs = inline_class.inline_instance.queryset(request, parent=obj)
+
+            if qs.count():
+                model_info.inlines.append(inline_class(qs))
+
+        return model_info
 
 class CustomModelInfo(ModelInfo):
     class Meta(object):
@@ -181,4 +219,7 @@ class CustomModelInfo(ModelInfo):
         fieldset_title_template = '<h2>%s</h2>'
         render_fieldset_title_in_row = False
 
+class CustomModelList(ModelList):
+    class Meta(object):
+        pass
 
