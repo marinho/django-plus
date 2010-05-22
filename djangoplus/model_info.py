@@ -109,7 +109,7 @@ class ModelInfoBase(object):
                 if self._meta.auto_urlize: f_value = urlize(f_value)
                 if self._meta.auto_linebreaks: f_value = linebreaksbr(f_value)
 
-        return f_value
+        return f_value or ''
 
     def get_linkable_field_value(self, instance, f_name, f_value, force=False):
         url = ''
