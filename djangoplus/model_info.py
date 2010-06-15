@@ -46,7 +46,7 @@ class ModelInfoBase(object):
         display text."""
 
         if hasattr(self, 'get_%s_display'%f_name):
-            ret = getattr(self, 'get_%s_display'%f_name)()
+            ret = getattr(self, 'get_%s_display'%(f_name.replace('.', '__')))()
         else:
             f = self.get_field(f_name)
 
@@ -62,7 +62,7 @@ class ModelInfoBase(object):
         f_value = None
 
         try:
-            return getattr(self, 'get_%s_value'%f_name)(instance)
+            return getattr(self, 'get_%s_value'%(f_name.replace('.', '__')))(instance)
         except AttributeError, e:
             pass
 
