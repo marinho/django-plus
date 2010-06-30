@@ -1,14 +1,47 @@
-"""TODO: These should be commented"""
-from django.http import HttpResponse
+# -*- coding: utf-8 -*-
+from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+from django.template.loader import render_to_string
+from django.contrib.admin.options import ModelAdmin
+from django.contrib.auth.decorators import login_required, permission_required
 
-# Thanks to Yuri Baburov
+try:
+    from django.utils.decorators import method_decorator
+except ImportError:
+    """Copiado do Django 1.2 para suportar Django 1.1"""
+
+    from functools import wraps, update_wrapper
+
+    def method_decorator(decorator):
+        def _dec(func):
+            def _wrapper(self, *args, **kwargs):
+                def bound_func(*args2, **kwargs2):
+                    return func(self, *args2, **kwargs2)
+                return decorator(bound_func)(*args, **kwargs)
+            return wraps(func)(_wrapper)
+        update_wrapper(_dec, decorator)
+        _dec.__name__ = 'method_decorator(%s)' % decorator.__name__
+        return _dec    
+
+login_required_m = method_decorator(login_required)
+permission_required_m = method_decorator(permission_required)
+
 def page(template=None, context=None, **decorator_args):
+    """This decorator was made by Yuri Baburov at its first version and Marinho just improved it"""
     def _wrapper(fn):
-        def _innerWrapper(request, *args, **kw):
+        def _innerWrapper(*args, **kw):
+            # Supports independent function views
+            if isinstance(args[0], HttpRequest):
+                request = args[0]
+
+            # Supports ModelAdmin method views
+            elif isinstance(args[0], ModelAdmin):
+                model_admin = args[1]
+                request = args[1]
+
             context_dict = decorator_args.copy()
-            g = fn(request, *args, **kw)
+            g = fn(*args, **kw)
             if issubclass(type(g), HttpResponse): 
                 return g
             if not hasattr(g, 'next'):  #Is this a generator?  Otherwise make it a tuple!
@@ -28,3 +61,39 @@ def page(template=None, context=None, **decorator_args):
             
         return _innerWrapper
     return _wrapper
+
+class render_xul(object):
+    """Decorator that renders to XUL mimetype using the same template system of Django"""
+    def __init__(self, template_path):
+        self.template_path = template_path
+
+    def __call__(self, func):
+        def wrapper(func):
+            def view(request, *args, **kwargs):
+                # Checks the user agent
+                if not 'Firefox' in request.META['HTTP_USER_AGENT']:
+                    request.user.message_set.create(user=request.user, message=u'Esta seção é suportada somente pelo navegador Firefox')
+                    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+                # Execute the view function
+                ret_func = func(request, *args, **kwargs)
+
+                # Checks the response type
+                if isinstance(ret_func, HttpResponse):
+                    return ret_func
+
+                # Renders to a string
+                ret = render_to_string(
+                        self.template_path,
+                        ret_func,
+                        context_instance=RequestContext(request),
+                        )
+
+                # The type of response must be XUL mimetype
+                resp = HttpResponse(ret, mimetype='application/vnd.mozilla.xul+xml;charset=UTF-8') # ISO-8859-1
+
+                return resp
+            return view
+
+        return wrapper(func)
+
