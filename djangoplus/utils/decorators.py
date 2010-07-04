@@ -6,23 +6,39 @@ from django.template.loader import render_to_string
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.auth.decorators import login_required, permission_required
 
-try:
-    from django.utils.decorators import method_decorator
-except ImportError:
-    """Copiado do Django 1.2 para suportar Django 1.1"""
+from functools import wraps, update_wrapper
 
-    from functools import wraps, update_wrapper
+#from django.utils.decorators import method_decorator
 
-    def method_decorator(decorator):
-        def _dec(func):
+def method_decorator(decorator):
+    """Converts a function decorator into a method decorator.
+    
+    This works properly for both decorators with arguments and without them. The Django's version
+    of this decorator just supports decorators with no arguments."""
+
+    def _dec(func):
+        def _wrapper(self, *args, **kwargs):
+            def bound_func(*args2, **kwargs2):
+                return func(self, *args2, **kwargs2)
+            return decorator(bound_func)(*args, **kwargs)
+        return wraps(func)(_wrapper)
+
+    def _args(*argsx, **kwargsx):
+        if len(argsx) == 1 and callable(argsx[0]) and not kwargsx:
+            return _dec(argsx[0])
+
+        def _dec2(func):
             def _wrapper(self, *args, **kwargs):
                 def bound_func(*args2, **kwargs2):
                     return func(self, *args2, **kwargs2)
-                return decorator(bound_func)(*args, **kwargs)
+                return decorator(*argsx, **kwargsx)(bound_func)(*args, **kwargs)
             return wraps(func)(_wrapper)
-        update_wrapper(_dec, decorator)
-        _dec.__name__ = 'method_decorator(%s)' % decorator.__name__
-        return _dec    
+        return _dec2
+
+    update_wrapper(_args, decorator)
+    # Change the name to aid debugging.
+    _args.__name__ = 'method_decorator(%s)' % decorator.__name__
+    return _args
 
 login_required_m = method_decorator(login_required)
 permission_required_m = method_decorator(permission_required)
