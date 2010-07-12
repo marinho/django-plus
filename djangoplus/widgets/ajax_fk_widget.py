@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.core.exceptions import ObjectDoesNotExist
 
 from djangoplus.utils import path_to_object, get_admin_url
 from djangoplus import app_settings
@@ -26,6 +27,7 @@ class AjaxFKWidget(TextInput):
     fill_left_zeros = 0
     rel = None
     model = None
+    driver = None
     related_field = None
     filter_dict = {}
     hide_input = False
@@ -38,6 +40,9 @@ class AjaxFKWidget(TextInput):
         if 'rel' in kwargs:
             self.rel = kwargs.pop('rel')
             self.get_from_rel()
+        elif 'driver' in kwargs:
+            self.model = self.related_field = None
+            self.driver = kwargs.pop('driver')
         else:
             self.model = kwargs.pop('model', None)
             self.related_field = kwargs.pop('related_field', 'pk')
@@ -45,27 +50,20 @@ class AjaxFKWidget(TextInput):
         if 'fill_left_zeros' in kwargs:
             self.fill_left_zeros = kwargs.pop('fill_left_zeros')
 
+        url_app = self.driver and 'driverbyname' or self.model.__module__.split('.')[0]
+        url_model = self.driver and self.driver or self.model.__name__
+
         self.window_url = kwargs.pop('window_url', self.window_url)
         if self.window_url is None:
-            self.window_url = reverse('ajax-fk-window-url', kwargs={
-                'app': self.model.__module__.split('.')[0],
-                'model': self.model.__name__,
-                })
+            self.window_url = reverse('ajax-fk-window-url', kwargs={'app': url_app, 'model': url_model})
 
         self.load_url = kwargs.pop('load_url', self.load_url)
         if self.load_url is None:
-            self.load_url = reverse('ajax-fk-load-url', kwargs={
-                'app': self.model.__module__.split('.')[0],
-                'model': self.model.__name__,
-                })
+            self.load_url = reverse('ajax-fk-load-url', kwargs={'app': url_app, 'model': url_model})
 
         self.add_url = kwargs.pop('add_url', self.add_url)
         if self.add_url is None:
-            self.add_url = '%s%s/%s/add/'%(
-                    admin.site.root_path,
-                    self.model.__module__.split('.')[0],
-                    self.model.__name__.lower(),
-                    )
+            self.add_url = '%s%s/%s/add/'%(admin.site.root_path, url_app, url_model.lower())
 
         self.hide_input = kwargs.pop('hide_input', self.hide_input)
 
@@ -97,7 +95,7 @@ class AjaxFKWidget(TextInput):
         if self.hide_input:
             ret = ret.replace(' type="text" ', ' type="hidden" ')
 
-        class_path = '.'.join([self.model.__module__, self.model.__name__])
+        #class_path = '.'.join([self.model.__module__, self.model.__name__])
 
         display = self.make_display(attrs, value)
 
@@ -115,8 +113,13 @@ class AjaxFKWidget(TextInput):
                 )
 
     def make_script(self, name):
+        if self.driver:
+            param_model = 'driverbyname.' + self.driver
+        else:
+            param_model = '.'.join([self.model.__module__,self.model.__name__])
+
         sc_params = {
-                "model": '.'.join([self.model.__module__,self.model.__name__]),
+                "model": param_model,
                 "filter": self.filter_dict or {},
                 "window-url": self.window_url,
                 "load-url": self.load_url,
@@ -152,7 +155,7 @@ class AjaxFKWidget(TextInput):
         try:
             obj = self.model._default_manager.get(**{self.related_field: value})
             return unicode(obj)
-        except self.model.DoesNotExist:
+        except ObjectDoesNotExist:
             return ''
 
     def get_display_url(self, value):
@@ -163,20 +166,30 @@ class AjaxFKWidget(TextInput):
         except KeyError:
             return ''
 
+        if not self.model:
+            return ''
+
         try:
             obj = self.model._default_manager.get(**{self.related_field: value})
 
             return get_admin_url(obj)
-        except self.model.DoesNotExist:
+        except ObjectDoesNotExist:
             return ''
 
     @classmethod
-    def register(cls, driver_class):
-        """Register a model class with its driver class
-        Example: AjaxFKWidget.register(MyModelClass, AjaxFKMyModelClass)"""
+    def register(cls, driver_class, name=None):
+        """Register a model class with its driver class.
+
+        Examples:
+            AjaxFKWidget.register(AjaxFKMyModelClass)
+            AjaxFKWidget.register(AjaxFKMyModelClass, 'MyDriver')
+            """
         global registered_models
 
         registered_models[driver_class.model] = driver_class
+
+        if name:
+            registered_models[name] = driver_class
 
 class AjaxFKDriver(object):
     model = None
@@ -185,10 +198,16 @@ class AjaxFKDriver(object):
     list_filter = None
     ordering = None
     template = 'djangoplus/ajaxfkwidget_window.html'
+    verbose_name = None
 
     def __init__(self, request, cls=None):
         self.request = request
         self.cls = cls
+
+        try:
+            self.verbose_name = self.model._meta.verbose_name
+        except AttributeError:
+            pass
 
     def _get_field_display(self, field_name):
         if field_name == '__unicode__':
@@ -199,7 +218,7 @@ class AjaxFKDriver(object):
         except AttributeError:
             try:
                 return self.model._meta.get_field_by_name(field_name)[0].verbose_name.capitalize()
-            except models.fields.FieldDoesNotExist:
+            except (models.fields.FieldDoesNotExist, AttributeError):
                 return field_name.replace('_', ' ').capitalize()
 
     def _get_field_value(self, field_name, obj):
@@ -213,8 +232,13 @@ class AjaxFKDriver(object):
         except AttributeError:
             pass
 
+        # Getting from dictionary
+        if isinstance(obj, dict):
+            value = obj.get(field_name, None)
+
         # Getting by attribute
-        value = getattr(obj, field_name, None)
+        else:
+            value = getattr(obj, field_name, None)
 
         # If the attribute is callable
         if callable(value):
@@ -275,10 +299,10 @@ class AjaxFKDriver(object):
                 'display': unicode(obj),
                 'url': self.get_display_url(obj),
             }
-        except self.model.DoesNotExist:
+        except ObjectDoesNotExist:
             ret = {
                 'res': app_settings.RESULT_ERROR,
-                'msg': u'%s não encontrado!'%self.model._meta.verbose_name,
+                'msg': u'%s não encontrado!' % self.verbose_name,
             }
 
         return ret
@@ -299,7 +323,10 @@ class AjaxFKDriver(object):
         The default value is the Admin URL for this object.
         
         You can also inform an empty string to set it as disabled."""
-        return get_admin_url(obj)
+        if isinstance(obj, models.Model):
+            return get_admin_url(obj)
+        else:
+            return ''
 
     @classmethod
     def get_extra_params(cls, widget=None, current_params=None):
@@ -308,8 +335,11 @@ class AjaxFKDriver(object):
         return {}
 
 def window_view(request, app, model):
-    cls = path_to_object('%s.models.%s'%(app, model))
-    driver = registered_models[cls](request, cls)
+    if app == 'driverbyname':
+        driver = registered_models[model](request)
+    else:
+        cls = path_to_object('%s.models.%s'%(app, model))
+        driver = registered_models[cls](request, cls)
 
     columns = driver.get_columns()
     results = driver.get_results()

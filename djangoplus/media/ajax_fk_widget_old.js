@@ -10,7 +10,6 @@ function ajax_fk_show_error_message(msg){
     }
 }
 
-(function($) {
 $(document).ready(function(){
     $('input.ajax-fk').each(function(){
         // Display span
@@ -229,5 +228,4 @@ function dismissAddAnotherPopup(win, newId, newRepr) {
         ajax_fk_show_error_message(e);
     }
 }
-})(django.jQuery);
 
