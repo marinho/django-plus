@@ -316,6 +316,12 @@ class AjaxFKDriver(object):
 
         return qs
 
+    def get_object_pk(self, obj):
+        return obj.pk
+
+    def get_object_display(self, obj):
+        return unicode(obj)
+
     @classmethod
     def get_display_url(cls, obj):
         """Returns the url to show as a link on the object display when selected.

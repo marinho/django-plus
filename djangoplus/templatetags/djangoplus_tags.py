@@ -9,6 +9,7 @@ from django.conf import settings
 from django.template.defaultfilters import slugify
 from django.core.cache import cache
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 from djangoplus.utils import path_to_object, split1000, get_admin_url
 from djangoplus import app_settings
@@ -732,4 +733,20 @@ register.tag('ajaxfkwidget_cells', do_ajaxfkwidget_cells)
 @register.filter
 def ajaxfkwidget_url(obj, func):
     return func(obj)
+
+@register.filter
+def ajaxfkwidget_pk(obj, driver=None):
+    if driver:
+        return driver.get_object_pk(obj)
+    elif isinstance(obj, dict):
+        return obj['pk']
+    else:
+        return obj.pk
+
+@register.filter
+def ajaxfkwidget_display(obj, driver=None):
+    if driver:
+        return driver.get_object_display(obj)
+    else:
+        return unicode(obj)
 
