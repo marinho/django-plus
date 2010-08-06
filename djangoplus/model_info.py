@@ -10,6 +10,26 @@ from django.utils import dateformat
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+try: # Django 1.2+
+    from django.utils.formats import localize
+except ImportError:
+    def localize(f_value):
+        date_format, datetime_format, time_format = get_date_formats()
+
+        if isinstance(f_value, datetime):
+            return dateformat.format(f_value, datetime_format)
+
+        if isinstance(f_value, time):
+            return dateformat.time_format(f_value, time_format)
+
+        if isinstance(f_value, date):
+            return dateformat.format(f_value, date_format)
+
+        if isinstance(f_value, decimal.Decimal):
+            return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
+
+        return value
+
 from djangoplus.templatetags.djangoplus_tags import moneyformat
 from djangoplus import app_settings
 
@@ -87,20 +107,9 @@ class ModelInfoBase(object):
             if isinstance(field, models.BooleanField):
                 return yesno(f_value)
 
-            date_format, datetime_format, time_format = get_date_formats()
-
         if f_value:
-            if isinstance(f_value, datetime):
-                return dateformat.format(f_value, datetime_format)
-
-            if isinstance(f_value, time):
-                return dateformat.time_format(f_value, time_format)
-
-            if isinstance(f_value, date):
-                return dateformat.format(f_value, date_format)
-
-            if isinstance(f_value, decimal.Decimal):
-                return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
+            if isinstance(f_value, (datetime, time, date, decimal.Decimal)):
+                return localize(f_value)
 
             if isinstance(f_value, models.Manager):
                 return ', '.join(map(unicode, f_value.all()))
