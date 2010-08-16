@@ -137,7 +137,10 @@ class AjaxFKWidget(TextInput):
 
         # Loads extra parameters from its driver
         try:
-            #driver = registered_models[self.model]
+            try:
+                driver = self._driver
+            except AttributeError:
+                self._driver = registered_models[self.driver]
 
             sc_params.update(self._driver.get_extra_params(self, sc_params))
         except KeyError:
