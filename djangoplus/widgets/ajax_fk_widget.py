@@ -41,11 +41,15 @@ class AjaxFKWidget(TextInput):
             self.rel = kwargs.pop('rel')
             self.get_from_rel()
         elif 'driver' in kwargs:
-            self.model = self.related_field = None
             self.driver = kwargs.pop('driver')
+            self._driver = registered_models[self.driver]
+
+            self.model = kwargs.pop('model', self._driver.model)
+            self.related_field = kwargs.pop('related_field', 'pk')
         else:
             self.model = kwargs.pop('model', None)
             self.related_field = kwargs.pop('related_field', 'pk')
+            self._driver = registered_models[self.model]
 
         if 'fill_left_zeros' in kwargs:
             self.fill_left_zeros = kwargs.pop('fill_left_zeros')
@@ -133,9 +137,9 @@ class AjaxFKWidget(TextInput):
 
         # Loads extra parameters from its driver
         try:
-            driver = registered_models[self.model]
+            #driver = registered_models[self.model]
 
-            sc_params.update(driver.get_extra_params(self, sc_params))
+            sc_params.update(self._driver.get_extra_params(self, sc_params))
         except KeyError:
             pass
 
@@ -161,10 +165,10 @@ class AjaxFKWidget(TextInput):
     def get_display_url(self, value):
         global registered_models
         
-        try:
-            driver = registered_models[self.model]
-        except KeyError:
-            return ''
+        #try:
+        #    driver = registered_models[self.model]
+        #except KeyError:
+        #    return ''
 
         if not self.model:
             return ''
