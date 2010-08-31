@@ -1,10 +1,14 @@
 """Utilities for test modules"""
 import os, unittest, doctest
-from sets import Set
 
 from django.core.serializers import deserialize
 from django.db.models import get_apps
 from django.test.simple import get_tests, run_tests as old_run_tests
+
+try:
+    set
+except:
+    from sets import Set as set
 
 def load_fixture(path, file_type='json'):
     """Load a fixture file"""
@@ -20,8 +24,8 @@ def model_has_fields(model_class, fields):
     list of fields that aren't in one of them.
     
     This method returns an empty list ( [] ) when everything is ok"""
-    fields = Set(fields)
-    model_fields = Set(
+    fields = set(fields)
+    model_fields = set(
             [f.name for f in model_class._meta.fields]+\
             [f.name for f in model_class._meta.many_to_many]
             )

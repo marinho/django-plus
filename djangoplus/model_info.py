@@ -242,6 +242,7 @@ class ModelList(ModelInfoBase):
         summary_fields = None
         summary_td_template = '<td class="%(field_name)s">%(value)s</td>'
         summary_tr_template = '<tr>%(cells)s</tr>'
+        ordering = None
 
     def __init__(self, queryset, *args, **kwargs):
         self.queryset = queryset
@@ -256,7 +257,8 @@ class ModelList(ModelInfoBase):
                 'thead_template','tbody_template','show_if_none','auto_urlize',
                 'auto_linebreaks','list_display_links','icon_edit_template',
                 'icon_delete_template','group_template','groups','show_header',
-                'summary_fields','summary_td_template','summary_tr_template','show_summary'):
+                'summary_fields','summary_td_template','summary_tr_template','show_summary',
+                'ordering'):
             if not hasattr(self._meta, attr):
                 setattr(self._meta, attr, getattr(_meta, attr))
 
@@ -304,6 +306,15 @@ class ModelList(ModelInfoBase):
 
         return self._meta.thead_template %(''.join(thead) + self.render_buttons_header())
 
+    def get_queryset(self, ordering=True):
+        try:
+            if ordering and self._meta.ordering:
+                return self.queryset.order_by(*self._meta.ordering)
+            else:
+                return self.queryset.all()
+        except AttributeError:
+            return self.queryset
+
     def summary(self):
         """Renders a summary with aggregation in the end of the grid.
         
@@ -316,10 +327,7 @@ class ModelList(ModelInfoBase):
         """
         fields = self._meta.fields or self.get_model_fields()
 
-        try:
-            qs = self.queryset.all()
-        except AttributeError:
-            qs = self.queryset
+        qs = self.get_queryset()
 
         tsummary = []
 
@@ -358,9 +366,9 @@ class ModelList(ModelInfoBase):
         if self._meta.groups:
             groups_values = groups_values.fromkeys(self._meta.groups)
 
-        try:
-            qs = self.queryset.all()
+        qs = self.get_queryset()
 
+        try:
             if self._meta.groups:
                 try:
                     qs = qs.order_by(*self._meta.groups)
@@ -370,7 +378,7 @@ class ModelList(ModelInfoBase):
                         raise
 
         except AttributeError:
-            qs = self.queryset
+            pass
 
         for obj in qs:
             # Groups
