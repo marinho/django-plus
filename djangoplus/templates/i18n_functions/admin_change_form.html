@@ -1,0 +1,11 @@
+{% extends "admin_original/change_form.html" %}
+
+{% load i18n_funcs %}
+
+{% block extrahead %}{{ block.super }}
+
+{% if original %}
+{% i18n_admin_fields %}
+{% endif %}
+
+{% endblock extrahead %}

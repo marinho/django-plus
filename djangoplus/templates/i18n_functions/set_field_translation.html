@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <style type="text/css">
+            body {
+                font-family: arial, helvetica;
+                font-size: 10pt;
+            }
+
+            h3 {
+                margin: 10px 0 0 0;
+            }
+
+            .original .value textarea {
+                background-color: #eeeeaa;
+            }
+
+            .value textarea {
+                width: 100%;
+                height: 100px;
+                font-family: courier new;
+                font-size: 11pt;
+            }
+
+            .buttons {
+                margin-top: 5px;
+                text-align: right;
+            }
+        </style>
+    </head>
+
+    <body>
+        <form method="post">
+            {{ formset.management_form }}
+            {% csrf_token %}
+
+            <div class="original">
+                <h3>Original value</h3>
+                <div class="value">
+                    <textarea readonly="readonly">{{ original_value }}</textarea>
+                </div>
+            </div>
+
+            {% for form in formset.forms %}
+            <div class="translation">
+                <h3>{{ form.instance.get_language_display }}</h3>
+                {{ form.id }} {{ form.language }}
+                <div class="value">{{ form.value }}</div>
+            </div>
+            {% endfor %}
+
+            <div class="buttons">
+                <input type="submit" value="Save"/>
+            </div>
+        </form>
+    </body>
+</html>
