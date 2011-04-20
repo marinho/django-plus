@@ -357,7 +357,6 @@ def window_view(request, app, model):
     columns = driver.get_columns()
     results = driver.get_results()
     list_display = driver.list_display
-    function_get_url = driver.get_display_url
 
     return render_to_response(
             driver.template,

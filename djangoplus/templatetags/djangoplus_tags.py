@@ -731,8 +731,8 @@ def do_ajaxfkwidget_cells(parser, token):
 register.tag('ajaxfkwidget_cells', do_ajaxfkwidget_cells)
 
 @register.filter
-def ajaxfkwidget_url(obj, func):
-    return func(obj)
+def ajaxfkwidget_url(obj, driver):
+    return driver.get_display_url(obj)
 
 @register.filter
 def ajaxfkwidget_pk(obj, driver=None):

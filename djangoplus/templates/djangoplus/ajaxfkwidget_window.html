@@ -46,7 +46,7 @@
                     {% ifequal forloop.counter0 0 %}
                     <input type="hidden" value="{{ obj|ajaxfkwidget_pk:driver }}" id="ajax-fk-result-pk"/>
                     <input type="hidden" value="{{ obj|ajaxfkwidget_display:driver }}" id="ajax-fk-result-display"/>
-                    <input type="hidden" value="{{ obj|ajaxfkwidget_url:function_get_url }}" id="ajax-fk-result-url"/>
+                    <input type="hidden" value="{{ obj|ajaxfkwidget_url:driver }}" id="ajax-fk-result-url"/>
                     {% endifequal %}
                 </td>
                 {% endfor %}
