@@ -5,8 +5,11 @@ from distutils.command.install import INSTALL_SCHEMES
 import os, sys
 
 # Downloads setuptools if not find it before try to import
-import ez_setup
-ez_setup.use_setuptools()
+try:
+    import ez_setup
+    ez_setup.use_setuptools()
+except ImportError:
+    pass
 
 from setuptools import setup
 from djangoplus import get_version
@@ -43,10 +46,7 @@ setup(
     license = 'GNU Lesser General Public License (LGPL)',
     packages = ['djangoplus', 'djangoplus.templatetags',
         'djangoplus.fieldtypes','djangoplus.forms','djangoplus.middleware',
-        'djangoplus.shortcuts','djangoplus.templates',
-        'djangoplus.templates.admin','djangoplus.templates.admin.djangoplus',
-        'djangoplus.templates.admin.djangoplus.dynamictemplate',
-        'djangoplus.templates.djangoplus','djangoplus.tests',
+        'djangoplus.shortcuts','djangoplus.tests',
         'djangoplus.utils','djangoplus.views','djangoplus.widgets',],
     data_files = data_files,
 )
