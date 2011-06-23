@@ -18,11 +18,18 @@ from djangoplus import app_settings
 
 registered_models = {}
 
+if hasattr(settings, 'AJAX_FK_MEDIA_URL'):
+    MEDIA_URL = settings.AJAX_FK_MEDIA_URL
+elif hasattr(settings, 'STATIC_URL'):
+    MEDIA_URL = settings.STATIC_URL
+else:
+    MEDIA_URL = settings.MEDIA_URL
+
 class AjaxFKWidget(TextInput):
     if app_settings.AJAX_FK_USE_MEDIA:
         class Media:
-            js = (settings.MEDIA_URL+'js/ajax_fk_widget.js',)
-            css = {'all': (settings.MEDIA_URL+'css/ajax_fk_widget.css',)}
+            js = (MEDIA_URL+'js/ajax_fk_widget.js',)
+            css = {'all': (MEDIA_URL+'css/ajax_fk_widget.css',)}
 
     fill_left_zeros = 0
     rel = None

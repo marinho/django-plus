@@ -16,12 +16,18 @@ $(document).ready(function(){
         // Display span
         var display = $(this).parent().find('.ajax-fk-display');
 
+        if (typeof ADMIN_MEDIA_PREFIX == 'undefined') {
+            var media_url = '/admin_media/';
+        } else {
+            var media_url = ADMIN_MEDIA_PREFIX;
+        }
+
         // Show window icon
-        var img = $('<a href="javascript: void(0)" class="ajax-fk-show-window"><img src="/admin_media/img/admin/selector-search.gif"/></a>').insertAfter(display);
+        var img = $('<a href="javascript: void(0)" class="ajax-fk-show-window"><img src="'+media_url+'img/admin/selector-search.gif"/></a>').insertAfter(display);
 
         // Add link icon
         if (fk_widgets[$(this).attr('name')]['add-url']) {
-            var add = $('<a class="ajax-fk-add" href="javascript: void(0)" title="Adicionar"><img src="/admin_media/img/admin/icon_addlink.gif" alt="Adicionar"/></a>').insertAfter(img);
+            var add = $('<a class="ajax-fk-add" href="javascript: void(0)" title="Adicionar"><img src="'+media_url+'img/admin/icon_addlink.gif" alt="Adicionar"/></a>').insertAfter(img);
         } else {
             var add = img;
         }
