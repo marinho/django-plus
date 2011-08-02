@@ -121,5 +121,7 @@ def url_status_code(url, status_code=200, content=None, client=None, return_resp
 def assert_equal(arg1, arg2):
     """Returns the arguments if any of them is different to the others, otherelse, returns empty."""
     if arg1 != arg2:
+        print arg1
+        print '<>'
         print arg2
 
