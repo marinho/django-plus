@@ -1,7 +1,7 @@
-VERSION = (1, 2, 8, 'stable')
+VERSION = (1, 2, 10)
 
 def get_version():
-    return '%d.%d.%d-%s'%VERSION
+    return '%d.%d.%d'%VERSION
 
 __author__ = 'Marinho Brandao'
 #__date__ = '$Date: 2008-07-26 14:04:51 -0300 (Ter, 26 Fev 2008) $'[7:-2]
