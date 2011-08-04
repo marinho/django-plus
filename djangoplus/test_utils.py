@@ -125,3 +125,14 @@ def assert_equal(arg1, arg2):
         print '<>'
         print arg2
 
+def assert_equal_numbers(arg1, arg2):
+    """Does the same of assert_equal but converts both to float to ensure they are in the same
+    value type - as a number."""
+    assert_equal(float(arg1), float(arg2))
+
+def assert_between(arg1, arg2, arg3):
+    """Makes assertation, printing the values if the first is not greater or equal the second
+    one and lower or equal to the third onde."""
+    if arg1 < arg2 or arg2 > arg3:
+        print '%s is not between %s and %s'%(arg1, arg2, arg3)
+
