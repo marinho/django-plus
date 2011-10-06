@@ -269,15 +269,6 @@ class AjaxFKDriver(object):
         # Keyword search
         qs = self.search_by_fields(qs)
 
-        # Filters
-        for k,v in self.request.GET.items():
-            if not k.startswith('ajax-fk-filter-'):
-                continue
-
-            f_name = k[15:]
-
-            qs = qs.filter(**{str(f_name): v})
-
         return qs
 
     def search_by_fields(self, qs):
@@ -305,7 +296,7 @@ class AjaxFKDriver(object):
 
     def get_by_pk(self):
         try:
-            obj = self.model.objects.get(pk=self.request.GET['pk'])
+            obj = self.get_query_set().get(pk=self.request.GET['pk'])
 
             ret = {
                 'res': app_settings.RESULT_OK,
@@ -327,6 +318,15 @@ class AjaxFKDriver(object):
         # Ordering
         if self.ordering:
             qs = qs.order_by(*self.ordering)
+
+        # Filters
+        for k,v in self.request.GET.items():
+            if not k.startswith('ajax-fk-filter-'):
+                continue
+
+            f_name = k[15:]
+
+            qs = qs.filter(**{str(f_name): v})
 
         return qs
 

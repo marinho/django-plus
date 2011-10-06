@@ -136,3 +136,11 @@ def assert_between(arg1, arg2, arg3):
     if arg1 < arg2 or arg2 > arg3:
         print '%s is not between %s and %s'%(arg1, arg2, arg3)
 
+def assert_true(arg1):
+    if not bool(arg1):
+        print '%s is not a True value'%arg1
+
+def assert_false(arg1):
+    if bool(arg):
+        print '%s is not a False value'%arg1
+

@@ -151,6 +151,10 @@ function ajax_fk_change() {
     // Makes the URL to request
     var url = fk_widgets[input.attr('name')]['load-url'] + '?pk=' + val;
 
+    if (fk_widgets[input.attr('name')]['get_additional_params']) {
+        url += fk_widgets[input.attr('name')]['get_additional_params']();
+    }
+
     // Gets foreign object
     $.getJSON(url, function(json){
         if (json['res'] == 'ok') {

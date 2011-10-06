@@ -57,7 +57,7 @@ def page(template=None, context=None, **decorator_args):
 
             # Supports ModelAdmin method views
             elif isinstance(args[0], ModelAdmin):
-                model_admin = args[1]
+                model_admin = args[0]
                 request = args[1]
 
             context_dict = decorator_args.copy()
