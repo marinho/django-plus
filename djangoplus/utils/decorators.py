@@ -61,6 +61,7 @@ def page(template=None, context=None, **decorator_args):
                 request = args[1]
 
             context_dict = decorator_args.copy()
+            template = kw.pop("template", _innerWrapper.template)
             g = fn(*args, **kw)
             if issubclass(type(g), HttpResponse): 
                 return g
@@ -78,7 +79,8 @@ def page(template=None, context=None, **decorator_args):
             if not context_instance:
                 context_instance = RequestContext(request, context_dict)
             return render_to_response(template_name, context_dict, context_instance)
-            
+
+        _innerWrapper.template = template
         return _innerWrapper
     return _wrapper
 
