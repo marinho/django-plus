@@ -61,7 +61,7 @@ class AjaxFKWidget(TextInput):
         if 'fill_left_zeros' in kwargs:
             self.fill_left_zeros = kwargs.pop('fill_left_zeros')
 
-        url_app = self.driver and 'driverbyname' or self.model.__module__.split('.')[0]
+        url_app = self.driver and 'driverbyname' or self.model._meta.app_label
         url_model = self.driver and self.driver or self.model.__name__
 
         self.window_url = kwargs.pop('window_url', self.window_url)
@@ -378,4 +378,3 @@ def load_view(request, app, model):
     ret = driver.get_by_pk()
 
     return HttpResponse(simplejson.dumps(ret), mimetype='text/javascript')
-
