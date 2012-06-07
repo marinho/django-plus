@@ -1,4 +1,4 @@
-VERSION = (1, 2, 15)
+VERSION = (1, 2, 16)
 
 def get_version():
     return '%d.%d.%d'%VERSION

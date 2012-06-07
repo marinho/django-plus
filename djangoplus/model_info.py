@@ -4,31 +4,37 @@ from datetime import date, time, datetime
 from django.utils.safestring import mark_safe
 from django.db import models
 from django.template.defaultfilters import yesno, linebreaksbr, urlize
-from django.utils.translation import get_date_formats
 from django.utils.text import capfirst
 from django.utils import dateformat
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-try: # Django 1.2+
-    from django.utils.formats import localize
+try: # Django 1.4+
+    from django.utils.formats import get_format
+    date_format = get_format('DATE_FORMAT')
+    datetime_format = get_format('DATETIME_FORMAT')
+    time_format = get_format('TIME_FORMAT')
 except ImportError:
-    def localize(f_value):
-        date_format, datetime_format, time_format = get_date_formats()
+    try: # Django 1.2+
+        from django.utils.formats import localize
+    except ImportError: # Django 1.2-
+        from django.utils.translation import get_date_formats
+        def localize(f_value):
+            date_format, datetime_format, time_format = get_date_formats()
 
-        if isinstance(f_value, datetime):
-            return dateformat.format(f_value, datetime_format)
+            if isinstance(f_value, datetime):
+                return dateformat.format(f_value, datetime_format)
 
-        if isinstance(f_value, time):
-            return dateformat.time_format(f_value, time_format)
+            if isinstance(f_value, time):
+                return dateformat.time_format(f_value, time_format)
 
-        if isinstance(f_value, date):
-            return dateformat.format(f_value, date_format)
+            if isinstance(f_value, date):
+                return dateformat.format(f_value, date_format)
 
-        if isinstance(f_value, decimal.Decimal):
-            return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
+            if isinstance(f_value, decimal.Decimal):
+                return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
 
-        return value
+            return value
 
 from djangoplus.templatetags.djangoplus_tags import moneyformat
 from djangoplus import app_settings
@@ -233,8 +239,8 @@ class ModelList(ModelInfoBase):
         tr_template = '<tr>%s</tr>'
         thead_template = '<thead><tr>%s</tr></thead>'
         tbody_template = '<tbody>%s</tbody>'
-        icon_edit_template = '<a href="%(edit_url)s" title="Edit this" class="edit"><img src="%(media_url)simg/admin/icon_changelink.gif" alt="Edit"/></a>'
-        icon_delete_template = '<a href="%(delete_url)s" title="Delete this" class="delete"><img src="%(media_url)simg/admin/icon_deletelink.gif" alt="Edit"/></a>'
+        icon_edit_template = '<a href="%(edit_url)s" title="Edit this" class="edit"><img src="%(media_url)simg/icon_changelink.gif" alt="Edit"/></a>'
+        icon_delete_template = '<a href="%(delete_url)s" title="Delete this" class="delete"><img src="%(media_url)simg/icon_deletelink.gif" alt="Edit"/></a>'
         group_template = '<tr><td colspan="%(cols)s" class="group"><h3>%(display)s</h3></td></tr>'
         groups = []
         show_header = True
@@ -280,11 +286,16 @@ class ModelList(ModelInfoBase):
         edit_url = edit_url or (url and url+'edit/' or '')
         delete_url = delete_url or (url and url+'delete/' or '')
 
+        try:
+            admin_media_prefix = settings.ADMIN_MEDIA_PREFIX
+        except AttributeError:
+            admin_media_prefix = settings.STATIC_URL + '/admin/'
+
         if self._meta.icon_edit_template and edit_url:
-            ret.append(self._meta.icon_edit_template%{'edit_url':edit_url, 'media_url':settings.ADMIN_MEDIA_PREFIX})
+            ret.append(self._meta.icon_edit_template%{'edit_url':edit_url, 'media_url':admin_media_prefix})
 
         if self._meta.icon_delete_template and delete_url:
-            ret.append(self._meta.icon_delete_template%{'delete_url':delete_url, 'media_url':settings.ADMIN_MEDIA_PREFIX})
+            ret.append(self._meta.icon_delete_template%{'delete_url':delete_url, 'media_url':admin_media_prefix})
 
         if ret:
             return '<td class="buttons">%s %s</td>'%(' '.join(ret), additional_code)
