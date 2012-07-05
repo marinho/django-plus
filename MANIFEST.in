@@ -1,0 +1,2 @@
+recursive-include djangoplus *.html
+recursive-include djangoplus *.jinja

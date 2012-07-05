@@ -60,5 +60,6 @@ setup(
         'djangoplus.widgets',
         ],
     data_files = data_files,
+    include_package_data=True,
 )
 
