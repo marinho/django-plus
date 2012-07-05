@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.utils import simplejson
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.db.models import get_model
 from django.http import HttpResponse
 from django.contrib import admin
 from django.shortcuts import render_to_response
@@ -358,7 +359,7 @@ def window_view(request, app, model):
     if app == 'driverbyname':
         driver = registered_models[model](request)
     else:
-        cls = path_to_object('%s.models.%s'%(app, model))
+        cls = get_model(app, model) #path_to_object('%s.models.%s'%(app, model))
         driver = registered_models[cls](request, cls)
 
     columns = driver.get_columns()
@@ -372,7 +373,7 @@ def window_view(request, app, model):
             )
 
 def load_view(request, app, model):
-    cls = path_to_object('%s.models.%s'%(app, model))
+    cls = get_model(app, model) # path_to_object('%s.models.%s'%(app, model))
     driver = registered_models[cls](request, cls)
 
     ret = driver.get_by_pk()
