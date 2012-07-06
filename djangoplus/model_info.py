@@ -9,6 +9,7 @@ from django.utils import dateformat
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+localize = None
 try: # Django 1.4+
     from django.utils.formats import get_format
     date_format = get_format('DATE_FORMAT')
@@ -19,22 +20,23 @@ except ImportError:
         from django.utils.formats import localize
     except ImportError: # Django 1.2-
         from django.utils.translation import get_date_formats
-        def localize(f_value):
-            date_format, datetime_format, time_format = get_date_formats()
+        date_format, datetime_format, time_format = get_date_formats()
 
-            if isinstance(f_value, datetime):
-                return dateformat.format(f_value, datetime_format)
+if not localize:
+    def localize(f_value):
+        if isinstance(f_value, datetime):
+            return dateformat.format(f_value, datetime_format)
 
-            if isinstance(f_value, time):
-                return dateformat.time_format(f_value, time_format)
+        if isinstance(f_value, time):
+            return dateformat.time_format(f_value, time_format)
 
-            if isinstance(f_value, date):
-                return dateformat.format(f_value, date_format)
+        if isinstance(f_value, date):
+            return dateformat.format(f_value, date_format)
 
-            if isinstance(f_value, decimal.Decimal):
-                return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
+        if isinstance(f_value, decimal.Decimal):
+            return moneyformat(f_value, None, app_settings.THOUSANDS_SEPARATOR)
 
-            return value
+        return value
 
 from djangoplus.templatetags.djangoplus_tags import moneyformat
 from djangoplus import app_settings
