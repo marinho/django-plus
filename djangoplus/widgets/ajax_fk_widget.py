@@ -305,10 +305,10 @@ class AjaxFKDriver(object):
                 'display': unicode(obj),
                 'url': self.get_display_url(obj),
             }
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist,ValueError):
             ret = {
                 'res': app_settings.RESULT_ERROR,
-                'msg': u'%s não encontrado!' % self.verbose_name,
+                'msg': u'%s not found!' % self.verbose_name,
             }
 
         return ret
